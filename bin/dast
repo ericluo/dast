@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby 
+
+# export data to file
+
+ROOT_DIR = File.join(File.dirname(__FILE__), "..")
+fn_staff = File.join(ROOT_DIR, "data/staff.csv")
+DB2CMD = [
+          "db2 connect to sample user db2inst1 using db2inst1",
+          "db2 export to #{fn_staff} of DEL modified by nochardel 'select * from staff'"
+          ]
+DB2CMD.each do |cmd|
+  system(cmd)
+end
+
+
+require 'etc'
+def as_user(user, &block)
+  u = Etc.getpwnam(user)
+  Process.fork do
+    Process.uid = u.uid
+    block.call
+  end
+end
