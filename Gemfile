@@ -1,1 +1,3 @@
 # gem 'hoe'
+
+gem 'thor'

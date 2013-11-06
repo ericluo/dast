@@ -1,4 +1,4 @@
-# encoding: GBK
+# encoding: UTF-8
 
 require 'thor'
 require 'erb'
@@ -7,7 +7,6 @@ require 'east'
 
 module East
   class CLI < Thor
-    class_option :schema, type: :string, required: true
 
     desc "check FILES", "check gathered data's filename with naming criteria"
     def check(*files)
@@ -20,6 +19,7 @@ module East
     end
 
     desc "generate sql script", "generate sql script for the given schema"
+    option :schema, type: :string, required: true
     def generate_sql
       grant    = East::ROOT.join("template/grant.sql.erb")
       runstats = East::ROOT.join("template/runstats.sql.erb")
@@ -35,6 +35,7 @@ module East
     end
 
     desc "grant rights", "grant privileges to proper user"
+    option :schema, type: :string, required: true
     def grant
       schema = options[:schema]
       grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
@@ -43,6 +44,7 @@ module East
     end
 
     desc "init database", "init database for given schema"
+    option :schema, type: :string, required: true
     def init_db
       schema = options[:schema]
       # create table
@@ -60,6 +62,7 @@ module East
 
     desc "import DIR", "import data from the given directory"
     option :replace, type: :boolean, default: true
+    option :schema, type: :string, required: true
     option :newer, type: :string
     def import(dir)
       schema = options[:schema]
