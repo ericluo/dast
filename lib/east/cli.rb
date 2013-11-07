@@ -7,6 +7,7 @@ require 'east'
 
 module East
   class CLI < Thor
+    include Thor::Actions
 
     desc "check FILES", "check gathered data's filename with naming criteria"
     def check(*files)
@@ -21,26 +22,10 @@ module East
     desc "generate sql script", "generate sql script for the given schema"
     option :schema, type: :string, required: true
     def generate_sql
-      grant    = East::ROOT.join("template/grant.sql.erb")
-      runstats = East::ROOT.join("template/runstats.sql.erb")
-      schema = options[:schema]
-
-      [grant, runstats].each do |template|
-        path = East::ROOT.join("sql/#{schema.downcase}")
-        path.mkpath unless path.exist?
-        File.open(path.join(template.basename('.erb')), "w") do |file|
-          file.write(::ERB.new(template.read).result(binding))
-        end
-      end
-    end
-
-    desc "grant rights", "grant privileges to proper user"
-    option :schema, type: :string, required: true
-    def grant
-      schema = options[:schema]
-      grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
-      logfile = East::ROOT.join("log/grant_#{schema}.log").to_s
-      db_cmd(schema) {system("db2 -tvf #{grant_sql} > #{logfile}")}
+      @schema = options[:schema]
+      destination = East::ROOT.join("sql/#{@schema.downcase}")
+      template "grant.sql.erb", destination.join("grant.sql")
+      template "runstat.sql.erb", destination.join("runstat.sql")
     end
 
     desc "init database", "init database for given schema"
@@ -53,6 +38,8 @@ module East
       db_cmd(schema) {
         system("db2 select current schema from sysibm.sysdummy1")
         system("db2 -tvf #{create_sql} > #{create_log}")}
+
+      invoke :generate_sql
 
       # grant rights
       grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
@@ -74,10 +61,16 @@ module East
           bank.load_data(dir) do |sds|
             sds.select {|sd| sd.mdate > newer_than}
           end
+        rescue
+          raise "parse date failed"
         end
       else
         bank.load_data(dir)
       end
+    end
+
+    def self.source_root
+      East::ROOT.join("template")
     end
 
     private
