@@ -9,7 +9,7 @@ DB2CMD = [
           "db2 export to #{fn_staff} of DEL modified by nochardel 'select * from staff'"
           ]
 DB2CMD.each do |cmd|
-  system(cmd)
+  system(cmd) 
 end
 
 

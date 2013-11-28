@@ -20,7 +20,7 @@ module East
     end
 
     desc "generate sql script", "generate sql script for the given schema"
-    option :schema, type: :string, required: true
+    method_option :schema, type: :string, required: true
     def generate_sql
       @schema = options[:schema]
       destination = East::ROOT.join("sql/#{@schema.downcase}")
@@ -28,32 +28,36 @@ module East
       template "runstat.sql.erb", destination.join("runstat.sql")
     end
 
-    desc "init database", "init database for given schema"
-    option :schema, type: :string, required: true
-    def init_db
+    desc "setup database", "setup database for given schema"
+    method_option :schema, type: :string, required: true
+    def setup
       schema = options[:schema]
-      # create table
-      create_sql = East::ROOT.join("sql/create_table.sql").to_s
-      create_log = East::ROOT.join("log/create_#{schema}.log").to_s
-      db_cmd(schema) {
-        system("db2 select current schema from sysibm.sysdummy1")
-        system("db2 -tvf #{create_sql} > #{create_log}")}
 
-      invoke :generate_sql
+      # invoke :generate_sql
+      # create table
+      # create_sql = East::ROOT.join("sql/create_table.sql")
+      # create_log = East::ROOT.join("log/create_#{schema}.log")
+      db_cmd(schema){run("db2 list tables")}
+      # db_cmd(schema) {
+      #   system("db2 select current schema from sysibm.sysdummy1")
+      #   system("db2 -tvf #{create_sql} > #{create_log}")}
+
 
       # grant rights
-      grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
-      grant_log = East::ROOT.join("log/grant_#{schema}.log").to_s
-      db_cmd(schema) {system("db2 -tvf #{grant_sql} > #{grant_log}")}
+      # grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
+      # grant_log = East::ROOT.join("log/grant_#{schema}.log").to_s
+      # db_cmd(schema) {system("db2 -tvf #{grant_sql} > #{grant_log}")}
     end
 
     desc "import DIR", "import data from the given directory"
-    option :replace, type: :boolean, default: true
-    option :schema, type: :string, required: true
-    option :newer, type: :string
+    method_option :replace, type: :boolean, default: true
+    method_option :schema, type: :string, required: true
+    method_option :newer, type: :string
     def import(dir)
       schema = options[:schema]
       bank = East::Bank.find(schema: schema)
+
+      invoke :connect
 
       if options[:newer]
         begin
@@ -69,14 +73,16 @@ module East
       end
     end
 
+    
     def self.source_root
       East::ROOT.join("template")
     end
 
     private
+
     def db_cmd(schema)
-      system("db2 connect to EASTST")
-      system("db2 set current schema='#{schema}'")
+      run("db2 connect to sample user db2inst1 using db2inst1")
+      run("db2 set current schema='#{schema}'")
       yield
     end
 
