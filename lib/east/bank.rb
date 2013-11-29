@@ -14,16 +14,9 @@ module East
       @logger ||= Logger.new(ROOT.join("log/east_#{@schema}.log"))
     end
 
-    def self.find(schema: nil, license: nil)
-      raise ArgumentError, "Arguments are all nil." unless schema || license
-      
-      config = if schema
-	BANKS.find {|k, v| v["schema"] == schema}
-      else
-	BANKS.find {|k, v| v["license"] == license}
-      end
-      raise ArgumentError, "Bank(schema: '#{schema}', license: '#{license}') not found" unless config
-      Bank.new(config[0])
+    def self.find(license)
+      config = BANKS.values.find{|h| h.has_value?(license)}
+      Bank.new(BANKS.rassoc(config).first)
     end
 
     def load_data(dir, includes: nil)

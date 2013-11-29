@@ -9,17 +9,21 @@ module East
   class CLI < Thor
     include Thor::Actions
 
-    desc "check FILES", "check gathered data's filename with naming criteria"
-    def check(*files)
-      results = check_files(files)
+    method_option :recursive, type: :boolean, default: false, aliases: 'r'
+    desc "check DIR", "check whether the file name in the given DIR is valid"
+    def check(dir)
+      pattern = options[:recursive] ? "**/*.txt" : "*.txt"
+      files = Dir[File.join(dir, pattern)]
+
+      sds = files.map {|file| StandardData.new(file)}
+      malformatted = sds.collect(:valid?)
 
       puts "*" * 70
-      puts "正常文件数: #{results[:ok].size}"
-      puts "格式错误文件数: #{results[:invalid].size}"
-      puts "未映射文件数: #{results[:unmapped].size}" 
+      puts "文件总数: #{files.size}"
+      puts "格式错误文件数: #{malformatted.size}"
     end
 
-    desc "generate sql script", "generate sql script for the given schema"
+    desc "generate_sql", "generate sql script for the given schema"
     method_option :schema, type: :string, required: true
     def generate_sql
       @schema = options[:schema]
@@ -84,49 +88,6 @@ module East
       run("db2 connect to sample user db2inst1 using db2inst1")
       run("db2 set current schema='#{schema}'")
       yield
-    end
-
-    def normalize_files(files)
-      norm_files = []
-
-      if files.empty?
-        norm_files = Dir[File.join(Dir.pwd, "*.txt")]
-      else
-        files.each do |path|
-          if File.directory?(path)
-            norm_files += Dir[File.join(path, "*.txt")]
-          else
-            norm_files << path
-          end
-        end
-      end
-
-      norm_files.map{|f| Pathname.new(f).realpath}
-    end
-
-    def check_files(files)
-      files = normalize_files(files)
-      results = Hash.new {|hash, key| hash[key] = []}
-      files.each do |file|
-        if FN_REGEXP =~ file.basename('.txt').to_s
-          (map_table(file) ? results[:ok] : results[:unmapped]) << file
-        else
-          results[:invalid] << file
-        end
-      end
-
-      results
-    end
-
-    # file: pathname
-    def map_table(file)
-      mdata = FN_REGEXP.match(file.basename('.txt').to_s)
-      interface_name = mdata[:interface_name]
-      MAPPER[interface_name]
-    end
-
-    def file_name(license_number, ifn, gather_date)
-      "#{license_number}-#{ifn}-#{gather_date}"
     end
 
     def logger

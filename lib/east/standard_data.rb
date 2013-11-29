@@ -9,18 +9,38 @@ module East
     IFN_REGEXP = /^(?<license>\w+)-(?<interface>\w+)-(?<gdate>\d+)\.txt$/ 
 
     def initialize(file)
-      basename = File.basename(file)
-      if fd = IFN_REGEXP.match(basename)
+      if md = IFN_REGEXP.match(File.basename)
 	@data_file = file
-	@bank = Bank.find(license: fd[:license])
-	@ifn = fd[:interface]
-	@gdate = fd[:interface]
+	@bank = Bank.find(md[:license])
+	@ifn = md[:interface]
+	@gdate = md[:interface]
 	@table = MAPPER[@ifn]
       else
 	raise ArgumentError, "File: #{file} malformatted"
       end
     end
 
+    def valid?
+      self.interface_valid?(@ifn) && @bank
+    end
+    
+
+    class << self
+      def valid?(file)
+        md = IFN_REGEXP.match(File.basename)
+        table_name = MAPPER[md[:interface]]
+        interface_valid?(md[:interface]) && license_valid?(md[:license])
+      end
+
+      def interface_valid?(interface)
+        MAPPER.has_key?(interface)
+      end
+
+      def license_valid?(license)
+        Bank.find(license)
+      end
+    end
+    
     # def_delegators :@data_file, :mtime
     
     def mdate
