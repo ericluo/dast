@@ -9,42 +9,28 @@ module East
     IFN_REGEXP = /^(?<license>\w+)-(?<interface>\w+)-(?<gdate>\d+)\.txt$/ 
 
     def initialize(file)
-      if md = IFN_REGEXP.match(File.basename)
-	@data_file = file
-	@bank = Bank.find(md[:license])
-	@ifn = md[:interface]
-	@gdate = md[:interface]
-	@table = MAPPER[@ifn]
-      else
-	raise ArgumentError, "File: #{file} malformatted"
-      end
+      @file = file
+      @license, @interface, @gdate = @file.scan /\w+/
     end
 
     def valid?
-      self.interface_valid?(@ifn) && @bank
+      pattern_valid? && license_valid? && interface_valid?
     end
-    
 
-    class << self
-      def valid?(file)
-        md = IFN_REGEXP.match(File.basename)
-        table_name = MAPPER[md[:interface]]
-        interface_valid?(md[:interface]) && license_valid?(md[:license])
-      end
-
-      def interface_valid?(interface)
-        MAPPER.has_key?(interface)
-      end
-
-      def license_valid?(license)
-        Bank.find(license)
-      end
+    def pattern_valid?
+      IFN_REGEXP =~ @file
     end
-    
-    # def_delegators :@data_file, :mtime
+
+    def license_valid?
+      Bank.find(@license)
+    end
+
+    def interface_valid?
+      MAPPER.has_key?(@interface)
+    end
     
     def mdate
-      File.new(@data_file).mtime.to_date
+      File.new(@file).mtime.to_date
     end
 
     def logger
@@ -52,15 +38,14 @@ module East
     end
 
     def command
-      file_name = @data_file.to_s
-      cmd = "db2 load from #{file_name} of del replace into #{@bank.schema}.#{@table}"
+      cmd = "db2 load from #{file} of del replace into #{@bank.schema}.#{MAPPER[@interface]}"
     end
 
     def load
-      logger.info "LOADING: #{@data_file}"
+      logger.info "LOADING: #{@file}"
 
-      unless File.exists?(@data_file)
-	logger.error "LOADED failed: #{@data_file} not existed"
+      unless File.exists?(@file)
+	logger.error "LOADED failed: #{@file} not existed"
       else
 	$stdout.puts "LOADING: #{command}"
 	exit_status = run(command)

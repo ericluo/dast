@@ -16,11 +16,11 @@ module East
       files = Dir[File.join(dir, pattern)]
 
       sds = files.map {|file| StandardData.new(file)}
-      malformatted = sds.collect(:valid?)
+      malformat = sds.reject(:valid?)
 
       puts "*" * 70
-      puts "文件总数: #{files.size}"
-      puts "格式错误文件数: #{malformatted.size}"
+      puts "文件总数: #{sds.size}"
+      puts "文件名格式错误数: #{malformat.size}"
     end
 
     desc "generate_sql", "generate sql script for the given schema"

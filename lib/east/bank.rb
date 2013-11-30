@@ -15,10 +15,13 @@ module East
     end
 
     def self.find(license)
-      config = BANKS.values.find{|h| h.has_value?(license)}
-      Bank.new(BANKS.rassoc(config).first)
+      BANKS.each_pair do |k, v|
+        return Bank.new(k) if v.has_value?(license)
+        next
+      end
+      nil
     end
-
+    
     def load_data(dir, includes: nil)
       sds = []
       files = File.join(dir, "*.txt")
