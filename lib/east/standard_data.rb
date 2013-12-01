@@ -7,6 +7,7 @@ module East
   class StandardData
     # extend Forwardable
     IFN_REGEXP = /^(?<license>\w+)-(?<interface>\w+)-(?<gdate>\d+)\.txt$/ 
+    attr_reader :file, :license, :interface, :gdate
 
     def initialize(file)
       @file = file

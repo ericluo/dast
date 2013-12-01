@@ -10,17 +10,19 @@ module East
     include Thor::Actions
 
     method_option :recursive, type: :boolean, default: false, aliases: 'r'
-    desc "check DIR", "check whether the file name in the given DIR is valid"
+    desc "check DIR", "check whether the name of files in the given DIR is valid"
     def check(dir)
       pattern = options[:recursive] ? "**/*.txt" : "*.txt"
       files = Dir[File.join(dir, pattern)]
 
       sds = files.map {|file| StandardData.new(file)}
-      malformat = sds.reject(:valid?)
+      malformat = sds.reject(&:valid?)
 
       puts "*" * 70
       puts "文件总数: #{sds.size}"
       puts "文件名格式错误数: #{malformat.size}"
+      puts "*" * 20 + "--格式错误文件列表--" + "*" * 20
+      malformat.each {|mf| puts "  #{mf.file}"}
     end
 
     desc "generate_sql", "generate sql script for the given schema"
