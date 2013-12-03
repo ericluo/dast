@@ -11,7 +11,7 @@ module East
 
       @schema = config["schema"]
       @license = config["license"]
-      @logger ||= Logger.new(ROOT.join("log/east_#{@schema}.log"))
+      @logger ||= Logger.new(ROOT.join("log/east.log"))
     end
 
     def self.find(license)
