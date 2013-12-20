@@ -2,6 +2,7 @@
 *.rbc
 .bundle
 .config
+.csv
 coverage
 InstalledFiles
 lib/bundler/man
