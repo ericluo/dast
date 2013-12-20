@@ -1,0 +1,21 @@
+require 'fileutils'
+require 'pathname'
+require 'date'
+
+backup_dir = Pathname.new("d:/backup/#{Date.today.to_s}")
+
+if backup_dir.directory?
+  exit 1
+else
+  backup_dir.mkdir
+end
+
+FileUtils.cd(backup_dir) do
+  system("db2look -d eastansy -l -e -o eastansy.ddl")
+  data_dir = backup_dir.join("db2move")
+  data_dir.mkdir
+  FileUtils.cd(backup_dir) do
+    system("db2move eastansy export -sn eastansy")
+  end
+end
+
