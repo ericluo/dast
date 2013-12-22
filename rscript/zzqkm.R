@@ -2,9 +2,8 @@ library(ggplot2)
 library(scales)
 
 # pt <- pt + theme_economist() + theme(text = element_text(family='STKaiti')) 
-my.theme = theme(text=element_text(family='STKaiti', size=16),
-                 axis.text.x=element_text(angle=45),
-                 title=element_text(size=20))
+my.theme = theme_bw(base_size = 20, base_family = 'STKaiti') +
+    theme(axis.text.x=element_text(angle=45))
 
 cnames <- c("科目编码", "科目名称", "科目层级", "科目类别", 
               "借贷","借方金额", "贷方金额", "采集日期")
