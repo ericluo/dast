@@ -22,7 +22,7 @@ module East
       nil
     end
     
-    def load_data(dir, includes: nil)
+    def load_data(dir, includes: nil, &filter)
       sds = []
       files = File.join(dir, "*.txt")
       Dir.glob(files).each do |file|
@@ -33,8 +33,8 @@ module East
 	end
       end
 
-      sds = yield(sds) if block_given?
-      db_action {sds.map(&:load) }
+      sds = filter.call(sds) unless filter
+      sds.map(&:load)
     end
 
     def generate_command(dir, gather_date)
@@ -45,10 +45,5 @@ module East
       end
     end
 
-    def db_action
-      system("db2 connect to EASTST")
-      system("db2 set current schema='#{@schema}'")
-      yield
-    end
   end
 end

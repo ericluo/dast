@@ -85,13 +85,6 @@ module East
     end
 
     private
-
-    def db_cmd(schema)
-      run("db2 connect to sample user db2inst1 using db2inst1")
-      run("db2 set current schema='#{schema}'")
-      yield
-    end
-
     def logger
       @logger ||= Logger.new('../log/east.log')
     end
