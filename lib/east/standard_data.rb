@@ -14,6 +14,10 @@ module East
       @license, @interface, @gdate = @file.scan /\w+/
     end
 
+    def bank
+      Bank.find(@license)
+    end
+    
     def valid?
       pattern_valid? && license_valid? && interface_valid?
     end
@@ -23,7 +27,7 @@ module East
     end
 
     def license_valid?
-      Bank.find(@license)
+      !bank.nil?
     end
 
     def interface_valid?
@@ -35,11 +39,15 @@ module East
     end
 
     def logger
-      @bank.logger
+      bank.logger
     end
 
     def command
-      cmd = "db2 load from #{file} of del replace into #{@bank.schema}.#{MAPPER[@interface]}"
+      cmd = "db2 load from #{file} of del replace into #{bank.schema}.#{MAPPER[@interface]}"
+    end
+
+    def async_load
+      Resque.enqueue(DataLoader, self)
     end
 
     def load

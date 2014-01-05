@@ -7,6 +7,7 @@ require 'yaml'
 
 require 'east/bank'
 require 'east/standard_data'
+require 'east/db_action'
 
 module East
 
