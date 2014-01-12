@@ -2,12 +2,15 @@
 
 require 'open3'
 require 'forwardable'
+require 'resque'
 
 module East
   class StandardData
     # extend Forwardable
     IFN_REGEXP = /^(?<license>\w+)-(?<interface>\w+)-(?<gdate>\d+)\.txt$/ 
     attr_reader :file, :license, :interface, :gdate
+
+    @queue = :data_loader
 
     def initialize(file)
       @file = file
@@ -43,42 +46,22 @@ module East
     end
 
     def command
-      cmd = "db2 load from #{file} of del replace into #{bank.schema}.#{MAPPER[@interface]}"
+      cmd = "db2 load from #{@file} of del replace into #{bank.schema}.#{MAPPER[@interface]}"
     end
 
     def async_load
-      Resque.enqueue(DataLoader, self)
+      Resque.enqueue(self.class, @file)
     end
 
-    def load
-      logger.info "LOADING: #{@file}"
-
-      unless File.exists?(@file)
-	logger.error "LOADED failed: #{@file} not existed"
-      else
-	$stdout.puts "LOADING: #{command}"
-	exit_status = run(command)
-	if exit_status.success?
-	  logger.info "Loaded successfully"
-	else
-	  logger.warn "Loaded with warning or error: #{exit_status.inspect}"
-	end
+    def perform
+      db_cmd("eastst", bank.schema) do
+        system(command)
       end
     end
 
-    def run(cmd)
-      Open3.popen2e(cmd) do |stdin, stdout_err, wait_thr|
-	stdin.close
-
-	while line = stdout_err.gets
-	  $stdout.puts line
-	  line = line.chomp
-	  logger.info(line) if /ÐÐÊý/ =~ line
-	end
-
-	return wait_thr.value
-      end
+    def self.perform(file)
+      sd = new(file)
+      sd.perform
     end
-
   end
 end

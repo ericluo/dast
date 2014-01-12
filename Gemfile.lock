@@ -1,6 +1,9 @@
 GEM
   remote: http://ruby.taobao.org/
   specs:
+    active_support (3.0.0)
+      activesupport (= 3.0.0)
+    activesupport (3.0.0)
     coderay (1.1.0)
     method_source (0.8.2)
     minitest (5.2.0)
@@ -41,6 +44,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  active_support
   minitest
   pry
   pry-doc

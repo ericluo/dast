@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 module East
-  module DB
+  module DBRunnable
     def db_cmd(db_name, schema, user: nil, passwd: nil)
       connect_sql = if user
                       "db2 connect to #{db_name} user #{user} using #{passed}"
