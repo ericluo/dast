@@ -1,6 +1,5 @@
 # encoding: UTF-8
 
-require 'thor'
 require 'east'
 
 module East
@@ -27,9 +26,11 @@ module East
     option :schemas, type: :string, required: true, default: :all
     def init_db
       # connec to database
-      run "db2 connect to eastst user db2inst1 using db2inst1"
+      as_user("db2inst1") do
+        run "db2 connect to eastst user db2inst1 using db2inst1"
+      end
       # create database eastst
-      run "db2 -tvf sql/create_eastst.sql > log/create_eastst.log"
+      # run "db2 -tvf sql/create_eastst.sql > log/create_eastst.log"
 
       # schemas(options).each do |schema|
       #   # create and use schema

@@ -8,6 +8,7 @@ require 'active_support/core_ext/hash'
 
 require 'pathname'
 require 'open3'
+require 'thor'
 require 'logger'
 require 'yaml'
 
