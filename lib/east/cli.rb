@@ -8,19 +8,14 @@ module East
     include Thor::Actions
 
     desc "generate_sql", "generate sql script"
-    method_option :schemas, type: :string, required: true, default: :all
+    option :schemas, type: :string, required: true, default: :all
     def generate_sql
       ["create_eastst.sql", "create_table.sql"].each do |file|
         copy_file East::ROOT.join("template/#{file}"),
                   East::ROOT.join("sql/#{file}")
       end
       
-      schemas = if options[:schemas] == :all
-                  East::BANKS.collect{|_,v| v["schema"]}
-                else
-                  options[:schemas].split(',')
-                end
-      schemas.each do |schema|
+      schemas(options).each do |schema|
         @schema = schema
         destination = East::ROOT.join("sql/#{@schema.downcase}")
         template "grant.sql.erb", destination.join("grant.sql")
@@ -28,19 +23,25 @@ module East
       end
     end
 
-    desc "init database", "init eastst databse"
+    desc "init_db", "init eastst databse"
+    option :schemas, type: :string, required: true, default: :all
     def init_db
+      # connec to database
+      run "db2 connect to eastst user db2inst1 using db2inst1"
       # create database eastst
       run "db2 -tvf sql/create_eastst.sql > log/create_eastst.log"
-      # create and use schema
-      run "db2 set current schema=#{schema}"
-      # create table for schema
-      run "db2 -tvf sql/create_table.sql > log/create_table.log"
-      # grant rights to user
-      run "db2 -tvf sql/grant.sql > log/grant.log"
+
+      # schemas(options).each do |schema|
+      #   # create and use schema
+      #   system "db2 set current schema=#{schema}"
+      #   # create table for schema
+      #   system "db2 -tvf sql/create_table.sql > log/create_table_#{schema}.log"
+      #   # grant rights to user
+      #   system "db2 -tvf sql/#{schema}/grant.sql > log/grant_#{schema}.log"
+      # end
     end
 
-    desc "setup database", "setup database for given schema"
+    desc "setup", "setup database for given schema"
     option :schema, type: :string, required: true
     def setup
       schema = options[:schema]
@@ -82,6 +83,24 @@ module East
     def self.source_root
       East::ROOT.join("template")
     end
+
+    def schemas(options)
+      if options[:schemas] == :all
+        East::BANKS.collect{|_,v| v["schema"]}
+      else
+        options[:schemas].split(',') || []
+      end
+    end
+
+    require 'etc'
+    def as_user(user, &block)
+      u = Etc.getpwnam(user)
+      Process.fork do
+        Process.uid = u.uid
+        block.call
+      end
+    end
+
   end
 end
 
