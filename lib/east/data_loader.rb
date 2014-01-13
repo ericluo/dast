@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*
 module East
   class DataLoader
     attr_accessor :sds          # all standard data files
-
     def initialize(dir, glob)
       files = Dir[File.join(dir, glob)]
       @sds = files.map {|file| StandardData.new(file)}
@@ -31,5 +30,3 @@ module East
 
   end
 end
-
-    
