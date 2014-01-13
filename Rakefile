@@ -1,9 +1,12 @@
 require 'rake/testtask'
-
 require 'resque/tasks'
 
-Rake::TestTask.new do |t|
-  t.test_files = Dir['test/east/*_spec.rb']
+
+namespace :east do
+  Rake::TestTask.new do |t|
+    t.test_files = Dir['test/east/*_spec.rb']
+  end
+
 end
 
-task :default => :test
+task :default => 'east:test'

@@ -1,4 +1,4 @@
--- ╠М/йсм╪ио╣дх╗очсО╬Д 
+-- Х║╗/Х╖├Е⌡╬Д╦┼Г └Ф²┐И≥░Х╞╜Е▐╔ 
 --------------------------------------------
 GRANT CONTROL ON TABLE "<%= @schema %>"."T_GX_GWXX" TO USER "EASTST" ;
 GRANT CONTROL ON TABLE "<%= @schema %>"."T_GX_GWXX" TO USER "<%= @schema %>" ;
@@ -172,15 +172,15 @@ GRANT CONTROL ON TABLE "<%= @schema %>"."T_ZFSN_ZFKTJ" TO USER "EASTST" ;
 GRANT CONTROL ON TABLE "<%= @schema %>"."T_ZFSN_ZFKTJ" TO USER "<%= @schema %>" ;
 
 ---------------------------------------
--- дёй╫ио╣дх╗очсО╬Д 
+-- Ф╗║Е╪▐Д╦┼Г └Ф²┐И≥░Х╞╜Е▐╔ 
 ---------------------------------------
  
-GRANT CREATEIN ON @SCHEMA "<%= @schema %>" TO USER "<%= @schema %>" ;
-GRANT DROPIN ON @SCHEMA "<%= @schema %>" TO USER "<%= @schema %>" ;
-GRANT ALTERIN ON @SCHEMA "<%= @schema %>" TO USER "<%= @schema %>" ;
+GRANT CREATEIN ON SCHEMA "<%= @schema %>" TO USER "<%= @schema %>" ;
+GRANT DROPIN ON SCHEMA "<%= @schema %>" TO USER "<%= @schema %>" ;
+GRANT ALTERIN ON SCHEMA "<%= @schema %>" TO USER "<%= @schema %>" ;
 
 ---------------------------------------
--- кВрЩио╣дх╗очсО╬Д 
+-- Г╢╒Е╪∙Д╦┼Г └Ф²┐И≥░Х╞╜Е▐╔ 
 ---------------------------------------
  
 GRANT CONTROL ON INDEX "<%= @schema %>"."T_GX_GWXX" TO USER "EASTST" ;
@@ -256,14 +256,14 @@ GRANT CONTROL ON INDEX "<%= @schema %>"."T_XG_XDZCZR" TO USER "<%= @schema %>" ;
 GRANT CONTROL ON INDEX "<%= @schema %>"."T_XG_ZZRGX" TO USER "<%= @schema %>" ;
 GRANT CONTROL ON INDEX "<%= @schema %>"."T_KJ_NBFZMX" TO USER "<%= @schema %>" ;
 ----------------------------------------
--- йЩ╬щ©Био╣дх╗очсО╬Д 
+-- Ф∙╟Ф█╝Е╨⌠Д╦┼Г └Ф²┐И≥░Х╞╜Е▐╔ 
 ----------------------------------------
 
 GRANT CREATETAB ON DATABASE  TO USER "<%= @schema %>" ;
 GRANT BINDADD ON DATABASE  TO USER "<%= @schema %>" ;
 GRANT CONNECT ON DATABASE  TO USER "<%= @schema %>" ;
 GRANT CREATE_NOT_FENCED ON DATABASE  TO USER "<%= @schema %>" ;
-GRANT IMPLICIT_@SCHEMA ON DATABASE  TO USER "<%= @schema %>" ;
+GRANT IMPLICIT_SCHEMA ON DATABASE  TO USER "<%= @schema %>" ;
 GRANT LOAD ON DATABASE  TO USER "<%= @schema %>" ;
 GRANT QUIESCE_CONNECT ON DATABASE  TO USER "<%= @schema %>" ;
 GRANT USE OF TABLESPACE "EASTRUNDATA" TO USER "<%= @schema %>" WITH GRANT OPTION;

@@ -1,29 +1,11 @@
-# encoding: utf-8
+# encoding: UTF-8
 
 require 'thor'
-require 'erb'
-require 'date'
 require 'east'
 
 module East
   class CLI < Thor
     include Thor::Actions
-
-    method_option :recursive, type: :boolean, default: false, aliases: 'r'
-    desc "check DIR", "check whether the name of files in the given DIR is valid"
-    def check(dir)
-      pattern = options[:recursive] ? "**/*.txt" : "*.txt"
-      files = Dir[File.join(dir, pattern)]
-
-      sds = files.map {|file| StandardData.new(file)}
-      malformat = sds.reject(&:valid?)
-
-      puts "*" * 70
-      puts "文件总数: #{sds.size}"
-      puts "文件名格式错误数: #{malformat.size}"
-      puts "*" * 20 + "--格式错误文件列表--" + "*" * 20
-      malformat.each {|mf| puts "  #{mf.file}"}
-    end
 
     desc "generate_sql", "generate sql script"
     method_option :schemas, type: :string, required: true, default: :all
@@ -32,7 +14,7 @@ module East
         copy_file East::ROOT.join("template/#{file}"),
                   East::ROOT.join("sql/#{file}")
       end
-                                                 
+      
       schemas = if options[:schemas] == :all
                   East::BANKS.collect{|_,v| v["schema"]}
                 else
@@ -57,9 +39,9 @@ module East
       # grant rights to user
       run "db2 -tvf sql/grant.sql > log/grant.log"
     end
-    
+
     desc "setup database", "setup database for given schema"
-    method_option :schema, type: :string, required: true
+    option :schema, type: :string, required: true
     def setup
       schema = options[:schema]
 
@@ -73,46 +55,33 @@ module East
       #   system("db2 -tvf #{create_sql} > #{create_log}")}
 
 
-      # grant rights
+      # Grant rights
       # grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
       # grant_log = East::ROOT.join("log/grant_#{schema}.log").to_s
       # db_cmd(schema) {system("db2 -tvf #{grant_sql} > #{grant_log}")}
     end
 
-    desc "import DIR", "import data from the given directory"
-    method_option :replace, type: :boolean, default: true
-    method_option :schema, type: :string, required: true
-    method_option :newer, type: :string
-    def import(dir)
-      schema = options[:schema]
-      bank = East::Bank.find(schema: schema)
-
-      invoke :connect
-
-      if options[:newer]
-        begin
-          newer_than = Date.parse(options[:newer])
-          bank.load_data(dir) do |sds|
-            sds.select {|sd| sd.mdate > newer_than}
-          end
-        rescue
-          raise "parse date failed"
-        end
-      else
-        bank.load_data(dir)
-      end
+    option :glob, aliases: ['-g'], type: :string, default: '*.txt'
+    desc "check DIR", "check whether the name of files in the given DIR is valid"
+    def check(dir)
+      DataLoader.new(dir, options[:glob]).check
     end
 
-    
-    def self.source_root
-      East::ROOT.join("template")
+    desc "import DIR", "import data from the given directory"
+    # option :synchronized, :aliases => ["-s"], :type => :boolean, :default => false
+    option :glob,         :aliases => ['-g'], :type => :string,  :default => '*.txt'
+    option :replace,      :aliases => ["-r"], :type => :boolean, :default => false
+    option :after,        :aliases => [],     :type => :string
+    def import(dir)
+      opts = @options.symbolize_keys.slice(:replace, :after) if @options
+      East::DataLoader.new(dir, options[:glob]).load(opts)
     end
 
     private
-    def logger
-      @logger ||= Logger.new('../log/east.log')
+    # used by thor to find the template
+    def self.source_root
+      East::ROOT.join("template")
     end
-
   end
 end
 

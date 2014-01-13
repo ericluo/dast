@@ -2,6 +2,7 @@
 source 'http://ruby.taobao.org'
 
 gem 'thor'
+gem 'active_support'
 
 gem 'rake'
 gem 'pry'

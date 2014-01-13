@@ -1,13 +1,21 @@
 # encoding: GBK
 
+require 'bundler/setup'
+
+require 'pry'
+require 'active_support'
+require 'active_support/core_ext/hash'
+
 require 'pathname'
 require 'open3'
 require 'logger'
 require 'yaml'
 
+
 require 'east/bank'
 require 'east/standard_data'
 require 'east/db_action'
+require 'east/data_loader'
 
 module East
 
