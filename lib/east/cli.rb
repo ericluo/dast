@@ -1,4 +1,4 @@
-# encoding: UTF-8
+# encoding: utf-8
 
 require 'thor'
 require 'erb'
@@ -25,15 +25,39 @@ module East
       malformat.each {|mf| puts "  #{mf.file}"}
     end
 
-    desc "generate_sql", "generate sql script for the given schema"
-    method_option :schema, type: :string, required: true
+    desc "generate_sql", "generate sql script"
+    method_option :schemas, type: :string, required: true, default: :all
     def generate_sql
-      @schema = options[:schema]
-      destination = East::ROOT.join("sql/#{@schema.downcase}")
-      template "grant.sql.erb", destination.join("grant.sql")
-      template "runstat.sql.erb", destination.join("runstat.sql")
+      ["create_eastst.sql", "create_table.sql"].each do |file|
+        copy_file East::ROOT.join("template/#{file}"),
+                  East::ROOT.join("sql/#{file}")
+      end
+                                                 
+      schemas = if options[:schemas] == :all
+                  East::BANKS.collect{|_,v| v["schema"]}
+                else
+                  options[:schemas].split(',')
+                end
+      schemas.each do |schema|
+        @schema = schema
+        destination = East::ROOT.join("sql/#{@schema.downcase}")
+        template "grant.sql.erb", destination.join("grant.sql")
+        template "runstat.sql.erb", destination.join("runstat.sql")
+      end
     end
 
+    desc "init database", "init eastst databse"
+    def init_db
+      # create database eastst
+      run "db2 -tvf sql/create_eastst.sql > log/create_eastst.log"
+      # create and use schema
+      run "db2 set current schema=#{schema}"
+      # create table for schema
+      run "db2 -tvf sql/create_table.sql > log/create_table.log"
+      # grant rights to user
+      run "db2 -tvf sql/grant.sql > log/grant.log"
+    end
+    
     desc "setup database", "setup database for given schema"
     method_option :schema, type: :string, required: true
     def setup
