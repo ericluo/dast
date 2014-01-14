@@ -19,7 +19,6 @@ module East
         template file, East::ROOT.join("sql", dest)
       end
       
-      
       schemas(options).each do |schema|
         @schema = schema
 
@@ -58,7 +57,11 @@ module East
     option :after,        :aliases => [],     :type => :string
     def import(dir)
       opts = @options.symbolize_keys.slice(:replace, :after) if @options
-      East::DataLoader.new(dir, options[:glob]).load(opts)
+      sds = East::DataLoader.new(dir, options[:glob]).sds
+      run "db2 connect to eastst user db2inst1 using db2inst1"
+      sds.each do |sd|
+        run sd.command
+      end
     end
 
     private

@@ -7,16 +7,20 @@ require 'resque'
 module East
   class StandardData
     # extend Forwardable
-    IFN_REGEXP = /^(?<license>\w+)-(?<interface>\w+)-(?<gdate>\d+)\.txt$/ 
+    IFN_REGEXP = /^(?<license>\w+)-(?<interface>\w+)-(?<gdate>\d+)$/ 
     attr_reader :file, :license, :interface, :gdate
 
     @queue = :data_loader
 
     def initialize(file)
       @file = file
-      @license, @interface, @gdate = @file.scan /\w+/
+      @license, @interface, @gdate = basename.scan /\w+/
     end
 
+    def basename
+      File.basename(@file, File.extname(@file))
+    end
+    
     def bank
       Bank.find(@license)
     end
@@ -26,7 +30,7 @@ module East
     end
 
     def pattern_valid?
-      IFN_REGEXP =~ @file
+      IFN_REGEXP =~ basename
     end
 
     def license_valid?

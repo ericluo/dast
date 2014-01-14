@@ -26,7 +26,7 @@ module East
       #   after_filter = lambda {|sd| sd.mdate > Date.parse(options[:after])}
       #   @sds = @sds.select(&after_filter)
       # end
-      @sds.map(&:async_load)
+      # @sds.map(&:async_load)
     end
 
   end
