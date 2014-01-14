@@ -7,58 +7,42 @@ module East
   class CLI < Thor
     include Thor::Actions
 
-    desc "generate_sql", "generate sql script"
-    method_option :schemas, type: :string, required: true, default: :all
-    def generate_sql
-      ["create_eastst.sql", "create_table.sql"].each do |file|
-        copy_file East::ROOT.join("template/#{file}"),
-                  East::ROOT.join("sql/#{file}")
+    desc "generate", "generate sql script"
+    option :schemas, type: :string, required: true, default: :all
+    option :username, type: :string, default: "db2inst1"
+    option :password, type: :string, default: "db2inst1"
+    def generate
+      @username = options[:username]
+      @password = options[:password]
+      ["create_eastst.sql.erb"].each do |file|
+        dest = File.basename(file).sub(/\.erb$/, '')
+        template file, East::ROOT.join("sql", dest)
       end
       
-      schemas = if options[:schemas] == :all
-                  East::BANKS.collect{|_,v| v["schema"]}
-                else
-                  options[:schemas].split(',')
-                end
-      schemas.each do |schema|
+      
+      schemas(options).each do |schema|
         @schema = schema
-        destination = East::ROOT.join("sql/#{@schema.downcase}")
-        template "grant.sql.erb", destination.join("grant.sql")
-        template "runstat.sql.erb", destination.join("runstat.sql")
+
+        ["create_table.sql.erb", "grant.sql.erb", "runstat.sql.erb"].each do |file|
+          dest = File.basename(file).sub(/\.erb$/, '')
+          template file, East::ROOT.join("sql", @schema.downcase, dest)
+        end
       end
     end
 
-    desc "init database", "init eastst databse"
-    def init_db
+    desc "setup", "setup database for given schemas"
+    option :schemas, type: :string, default: :all
+    def setup
       # create database eastst
       run "db2 -tvf sql/create_eastst.sql > log/create_eastst.log"
-      # create and use schema
-      run "db2 set current schema=#{schema}"
-      # create table for schema
-      run "db2 -tvf sql/create_table.sql > log/create_table.log"
-      # grant rights to user
-      run "db2 -tvf sql/grant.sql > log/grant.log"
-    end
 
-    desc "setup database", "setup database for given schema"
-    option :schema, type: :string, required: true
-    def setup
-      schema = options[:schema]
-
-      # invoke :generate_sql
-      # create table
-      # create_sql = East::ROOT.join("sql/create_table.sql")
-      # create_log = East::ROOT.join("log/create_#{schema}.log")
-      db_cmd(schema){run("db2 list tables")}
-      # db_cmd(schema) {
-      #   system("db2 select current schema from sysibm.sysdummy1")
-      #   system("db2 -tvf #{create_sql} > #{create_log}")}
-
-
-      # Grant rights
-      # grant_sql = East::ROOT.join("sql/grant_#{schema}.sql").to_s
-      # grant_log = East::ROOT.join("log/grant_#{schema}.log").to_s
-      # db_cmd(schema) {system("db2 -tvf #{grant_sql} > #{grant_log}")}
+      schemas(options).each do |schema|
+        schema = schema.downcase
+        # create table for schema
+        run "db2 -tvf sql/#{schema}/create_table.sql > log/create_table_#{schema}.log"
+        # grant rights to user
+        run "db2 -tvf sql/#{schema}/grant.sql > log/grant_#{schema}.log"
+      end
     end
 
     option :glob, aliases: ['-g'], type: :string, default: '*.txt'
@@ -68,7 +52,7 @@ module East
     end
 
     desc "import DIR", "import data from the given directory"
-    # option :synchronized, :aliases => ["-s"], :type => :boolean, :default => false
+    option :synchronized, :aliases => ["-s"], :type => :boolean, :default => true
     option :glob,         :aliases => ['-g'], :type => :string,  :default => '*.txt'
     option :replace,      :aliases => ["-r"], :type => :boolean, :default => false
     option :after,        :aliases => [],     :type => :string
@@ -82,6 +66,24 @@ module East
     def self.source_root
       East::ROOT.join("template")
     end
+
+    def schemas(options)
+      if options[:schemas] == :all
+        East::BANKS.collect{|_,v| v["schema"]}
+      else
+        options[:schemas].split(',') || []
+      end
+    end
+
+    require 'etc'
+    def as_user(user, &block)
+      u = Etc.getpwnam(user)
+      Process.fork do
+        Process.uid = u.uid
+        block.call
+      end
+    end
+
   end
 end
 

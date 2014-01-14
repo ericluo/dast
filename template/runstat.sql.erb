@@ -1,3 +1,5 @@
+CONNECT TO EASTST user <%= @username %> using <%= @password %> ;
+
 runstats on table "<%= @schema %>"."T_GX_GWXX" and indexes all;
 runstats on table "<%= @schema %>"."T_GX_GYB" and indexes all;
 runstats on table "<%= @schema %>"."T_GX_JGXX" and indexes all;
