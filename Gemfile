@@ -14,7 +14,7 @@ group :development do
 end
 
 gem 'resque'
-# gem 'god'
+gem 'god'
 
 group :test do
   gem 'rspec'
