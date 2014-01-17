@@ -8,13 +8,15 @@ gem 'rake'
 group :development do
   gem 'pry'
   gem 'pry-doc'
+  gem 'pry-rescue'
   gem 'pry-debugger'
+  gem 'pry-stack_explorer'
 end
 
 gem 'resque'
-# gem 'god'
+gem 'god'
 
 group :test do
-  gem 'minitest'
+  gem 'rspec'
 end
 
