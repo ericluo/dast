@@ -9,4 +9,11 @@ namespace :east do
 
 end
 
+task "resque:setup" do
+  ENV['QUEUE'] = 'db_action'
+  ENV['VERBOSE'] = '1'
+  $:.unshift(File.join(File.dirname(__FILE__), "lib"))
+  require 'east/db_action'
+end
+
 task :default => 'east:test'
