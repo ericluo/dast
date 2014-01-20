@@ -1,11 +1,23 @@
 # encoding: UTF-8
 
 require 'east'
+require 'resque'
 
 module East
   class CLI < Thor
     include Thor::Actions
 
+    desc "query", "query database info"
+    option :database, :type => :string, :default => "sample"
+    option :user,     :type => :string, :default => "db2inst1"
+    option :passwd,   :type => :string, :default => "db2inst1"
+    def query
+      Resque.enqueue DB2Jobs, options, <<-SQL
+        select * from syscat.tables
+        terminate
+      SQL
+    end
+    
     desc "generate_sql", "generate sql script"
     option :schemas, type: :string, required: true, default: :all
     def generate_sql
@@ -78,6 +90,11 @@ module East
       opts = @options.symbolize_keys.slice(:replace, :after) if @options
       East::DataLoader.new(dir, options[:glob]).load(opts)
     end
+
+    # public methods but not commands
+    no_commands {
+
+    }
 
     private
     # used by thor to find the template
