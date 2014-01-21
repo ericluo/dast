@@ -11,5 +11,3 @@ module East
 
   end
 end
-
-    

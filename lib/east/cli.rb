@@ -1,8 +1,7 @@
 # encoding: utf-8
 
-require 'thor'
-require 'resque'
 require 'east'
+require 'resque'
 
 module East
   class CLI < Thor
@@ -98,6 +97,11 @@ module East
         run "db2 -tvf sql/truncate.sql"
       end
     end
+
+    # public methods but not commands
+    no_commands {
+
+    }
 
     private
     # used by thor to find the template
