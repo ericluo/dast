@@ -10,6 +10,7 @@ require 'pathname'
 require 'open3'
 require 'logger'
 require 'yaml'
+require 'thor'
 
 
 require 'east/bank'
