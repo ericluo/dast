@@ -15,7 +15,7 @@ require 'yaml'
 require 'east/bank'
 require 'east/standard_data'
 require 'east/db_action'
-require 'east/data_loader'
+# require 'east/data_loader'
 
 module East
 

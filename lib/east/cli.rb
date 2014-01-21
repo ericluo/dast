@@ -1,6 +1,7 @@
-# encoding: UTF-8
+# encoding: utf-8
 
 require 'thor'
+require 'resque'
 require 'east'
 
 module East
@@ -58,20 +59,43 @@ module East
     desc "check DIR", "check whether the name of files in the given DIR is valid"
     option :glob, aliases: ['-g'], type: :string, default: '*.txt'
     def check(dir)
-      DataLoader.new(dir, options[:glob]).check
+      files = Dir[File.join(dir, options[:glob])]
+      sds = files.map {|file| StandardData.new(file)}
+      malformat = sds.reject(&:valid?)
+
+      puts "*" * 70
+      puts "文件总数: #{sds.size}"
+      puts "文件名格式错误数: #{malformat.size}"
+      puts "*" * 25 + "--格式错误文件列表--" + "*" * 25
+      malformat.each {|mf| puts "  #{mf.file}"}
     end
 
     desc "import DIR", "import data from the given directory"
-    option :synchronized, :aliases => ["-s"], :type => :boolean, :default => true
+    option :sync,         :aliases => ["-s"], :type => :boolean, :default => false
     option :glob,         :aliases => ['-g'], :type => :string,  :default => '*.txt'
     option :replace,      :aliases => ["-r"], :type => :boolean, :default => false
     option :after,        :aliases => [],     :type => :string
     def import(dir)
-      opts = @options.symbolize_keys.slice(:replace, :after) if @options
-      sds = East::DataLoader.new(dir, options[:glob]).sds
-      run "db2 connect to eastst user db2inst1 using db2inst1"
+      files = Dir[File.join(dir, options[:glob])]
+      sds = files.map {|file| StandardData.new(file)}
+
+      # opts = @options.symbolize_keys.slice(:replace, :after) if @options
+      # sds = East::DataLoader.new(dir, options[:glob]).sds
       sds.each do |sd|
-        run sd.command
+        if options[:sync]
+          sd.load
+        else
+          sd.async_load
+        end
+      end
+    end
+
+    # TODO truncate the database
+    # truncate table schema.tabname immediate
+    desc "clean", "empty given schemas"
+    def clean
+      schemas(options).each do |schema|
+        run "db2 -tvf sql/truncate.sql"
       end
     end
 

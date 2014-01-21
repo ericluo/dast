@@ -9,4 +9,11 @@ namespace :east do
 
 end
 
+task "resque:setup" do
+  ENV['QUEUE'] = 'data_loader'
+  ENV['COUNT'] = '2'
+  $:.unshift(File.join(File.dirname(__FILE__), "lib"))
+  require 'east'
+end
+
 task :default => 'east:test'

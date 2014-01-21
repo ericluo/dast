@@ -14,6 +14,8 @@ group :development do
 end
 
 gem 'resque'
+gem 'resque-history'
+gem 'puma'
 gem 'god'
 
 group :test do

@@ -37,6 +37,8 @@ GEM
     pry-stack_explorer (0.4.9.1)
       binding_of_caller (>= 0.7)
       pry (>= 0.9.11)
+    puma (2.7.1)
+      rack (>= 1.1, < 2.0)
     rack (1.5.2)
     rack-protection (1.5.1)
       rack
@@ -50,6 +52,8 @@ GEM
       redis-namespace (~> 1.2)
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
+    resque-history (1.11.1)
+      resque
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
@@ -80,7 +84,9 @@ DEPENDENCIES
   pry-doc
   pry-rescue
   pry-stack_explorer
+  puma
   rake
   resque
+  resque-history
   rspec
   thor
